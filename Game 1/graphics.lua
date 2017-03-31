@@ -76,22 +76,45 @@ function graphics.load(arg)
     file:close() 
 end
 
+function reverse()
+    print(story.index)
+    if story.index > 2 then 
+        story.readNext = true
+        story.index = story.index - 2
+        text.full = story.text[story.index]
+        text.printed = text.full
+        story.index = story.index + 1
+    else
+        story.readNext = false
+        story.index = 1
+        text.full = ""
+        text.printed = ""
+    end
+        text.finished = true
+        text.index = 0
+end
+
+function advance() 
+    print(story.index)
+    if story.index < maxLines then 
+        story.readNext = false
+        text.full = story.text[story.index]
+        text.finished = false
+        text.printed = ""
+        text.index = 0
+        story.index = story.index + 1
+    else
+        text.printed = "The End"
+        story.index = maxLines + 1 
+    end
+end
+
 function love.keypressed(key, scancode, isRepeat)
     if key == "escape" then
         love.event.push("quit")
-    elseif key == "return" and not isRepeat and text.finshed ~= "Then End" then
+    elseif key == "return" and not isRepeat and story.index < (maxLines + 1) then
         if story.readNext then
-            if story.index < maxLines then 
-                print(story.index)
-                story.readNext = false
-                text.full = story.text[story.index]
-                text.finished = false
-                text.printed = ""
-                text.index = 0
-                story.index = story.index + 1
-            else
-                text.printed = "The End"
-            end
+            advance()
         elseif not text.finished then
             text.finished = true
             story.readNext = true
@@ -143,7 +166,7 @@ function graphics.draw(dt)
     if story.index > 1 then
         love.graphics.draw(buttons.all, buttons.previous, border.left * 2, buttons.y)
     end
-    if text.finished then
+    if text.finished and story.index < (maxLines + 1) then
         love.graphics.draw(buttons.all, buttons.go, buttons.x, buttons.y)
     end
 end
@@ -152,8 +175,14 @@ function love.mousereleased(x, y, button, istouch)
     if y >= buttons.y and y <= buttons.y + 48 then
         if x >= (border.left * 2) and x <= (border.left * 2 + 56) then
             print("Previous button clicked")
+            if story.index > 1 then
+                reverse()
+            end
         elseif x >= buttons.x and x <= (buttons.x + 56) then
             print("Next button clicked")
+            if text.finished and story.index < (maxLines + 1) then
+                advance()
+            end
         end
     end
 end
